@@ -378,6 +378,121 @@
             transform: translateX(8px);
         }
 
+        /* Sorting Visualization Section */
+        .sorting-viz {
+            padding: var(--space-xl) 0;
+        }
+
+        .viz-controls {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-lg);
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .control-label {
+            font-size: var(--text-xs);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+        }
+
+        .viz-select, .viz-button {
+            padding: clamp(0.5rem, 1vw, 0.75rem) clamp(1rem, 2vw, 1.5rem);
+            font-size: var(--text-sm);
+            font-weight: 400;
+            font-family: 'Urbanist', system-ui, sans-serif;
+            color: var(--color-text-primary);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-out-quint);
+        }
+
+        .viz-select:hover, .viz-button:hover {
+            border-color: var(--color-accent);
+            transform: translateY(-2px);
+        }
+
+        .viz-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .viz-button-primary {
+            background: var(--color-accent);
+            color: var(--color-base);
+            font-weight: 600;
+            border-color: var(--color-accent);
+        }
+
+        .viz-button-primary:hover {
+            background: var(--color-accent-vivid);
+            border-color: var(--color-accent-vivid);
+        }
+
+        .viz-canvas {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            padding: var(--space-md);
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .viz-bar {
+            flex: 1;
+            max-width: 60px;
+            background: var(--color-accent);
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+            border-top: 2px solid var(--color-accent-vivid);
+        }
+
+        .viz-bar.comparing {
+            background: oklch(75% 0.20 45);
+            border-top-color: oklch(85% 0.23 45);
+        }
+
+        .viz-bar.swapping {
+            background: oklch(70% 0.20 25);
+            border-top-color: oklch(80% 0.23 25);
+        }
+
+        .viz-bar.sorted {
+            background: oklch(65% 0.15 140);
+            border-top-color: oklch(75% 0.18 140);
+        }
+
+        .viz-stats {
+            margin-top: var(--space-md);
+            display: flex;
+            gap: var(--space-lg);
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .stat-value {
+            color: var(--color-accent-vivid);
+            font-weight: 600;
+            font-size: var(--text-base);
+        }
+
         /* Footer */
         footer {
             padding: var(--space-lg) 0;
@@ -457,6 +572,7 @@
                         <path d="M5 11L11 5M11 5H6M11 5V10"/>
                     </svg>
                 </a>
+                <a href="#sorting-viz" class="link-button">See Sorting Viz</a>
                 <a href="#contact" class="link-button">Get in Touch</a>
                 <a href="#projects" class="link-button">View Work</a>
             </div>
@@ -565,6 +681,71 @@
             </div>
         </section>
 
+        <!-- Sorting Visualization Section -->
+        <section id="sorting-viz" class="sorting-viz">
+            <h2 class="section-title heading">Sorting Algorithm Visualization</h2>
+
+            <div class="viz-controls">
+                <div class="control-group">
+                    <label class="control-label" for="algorithm-select">Algorithm</label>
+                    <select id="algorithm-select" class="viz-select">
+                        <option value="quicksort">Quick Sort</option>
+                        <option value="mergesort">Merge Sort</option>
+                        <option value="bubblesort">Bubble Sort</option>
+                        <option value="heapsort">Heap Sort</option>
+                        <option value="insertionsort">Insertion Sort</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="speed-select">Speed</label>
+                    <select id="speed-select" class="viz-select">
+                        <option value="10">Very Fast</option>
+                        <option value="50" selected>Fast</option>
+                        <option value="150">Normal</option>
+                        <option value="300">Slow</option>
+                        <option value="500">Very Slow</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="size-select">Array Size</label>
+                    <select id="size-select" class="viz-select">
+                        <option value="20">20</option>
+                        <option value="40" selected>40</option>
+                        <option value="60">60</option>
+                        <option value="80">80</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <div class="control-group" style="margin-top: auto;">
+                    <button id="sort-btn" class="viz-button viz-button-primary">Sort</button>
+                </div>
+
+                <div class="control-group" style="margin-top: auto;">
+                    <button id="reset-btn" class="viz-button">Reset</button>
+                </div>
+            </div>
+
+            <div id="viz-canvas" class="viz-canvas"></div>
+
+            <div class="viz-stats">
+                <div class="stat-item">
+                    <span class="control-label">Comparisons</span>
+                    <div class="stat-value" id="comparisons">0</div>
+                </div>
+                <div class="stat-item">
+                    <span class="control-label">Array Accesses</span>
+                    <div class="stat-value" id="accesses">0</div>
+                </div>
+                <div class="stat-item">
+                    <span class="control-label">Time Complexity</span>
+                    <div class="stat-value" id="complexity">O(n log n)</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Contact Section -->
         <section id="contact" class="contact">
             <h2 class="section-title heading">Let's Work Together</h2>
@@ -581,5 +762,323 @@
     <footer>
         <p>&copy; 2026 Mantas. Built with intention and care.</p>
     </footer>
+
+    <script>
+        class SortingVisualizer {
+            constructor() {
+                this.canvas = document.getElementById('viz-canvas');
+                this.sortBtn = document.getElementById('sort-btn');
+                this.resetBtn = document.getElementById('reset-btn');
+                this.algorithmSelect = document.getElementById('algorithm-select');
+                this.speedSelect = document.getElementById('speed-select');
+                this.sizeSelect = document.getElementById('size-select');
+                this.comparisonsEl = document.getElementById('comparisons');
+                this.accessesEl = document.getElementById('accesses');
+                this.complexityEl = document.getElementById('complexity');
+
+                this.array = [];
+                this.bars = [];
+                this.isSorting = false;
+                this.comparisons = 0;
+                this.accesses = 0;
+                this.delay = 50;
+
+                this.complexityMap = {
+                    quicksort: 'O(n log n)',
+                    mergesort: 'O(n log n)',
+                    bubblesort: 'O(n²)',
+                    heapsort: 'O(n log n)',
+                    insertionsort: 'O(n²)'
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.sortBtn.addEventListener('click', () => this.startSort());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.sizeSelect.addEventListener('change', () => this.reset());
+                this.algorithmSelect.addEventListener('change', () => this.updateComplexity());
+
+                this.reset();
+            }
+
+            updateComplexity() {
+                const algorithm = this.algorithmSelect.value;
+                this.complexityEl.textContent = this.complexityMap[algorithm] || 'O(n log n)';
+            }
+
+            reset() {
+                this.isSorting = false;
+                this.comparisons = 0;
+                this.accesses = 0;
+                this.updateStats();
+                this.generateArray();
+                this.render();
+                this.sortBtn.disabled = false;
+                this.updateComplexity();
+            }
+
+            generateArray() {
+                const size = parseInt(this.sizeSelect.value);
+                this.array = Array.from({ length: size }, () => Math.floor(Math.random() * 350) + 50);
+            }
+
+            render() {
+                this.canvas.innerHTML = '';
+                this.bars = this.array.map((value, index) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'viz-bar';
+                    bar.style.height = `${value}px`;
+                    bar.dataset.index = index;
+                    this.canvas.appendChild(bar);
+                    return bar;
+                });
+            }
+
+            updateStats() {
+                this.comparisonsEl.textContent = this.comparisons;
+                this.accessesEl.textContent = this.accesses;
+            }
+
+            async sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async highlightBars(indices, className) {
+                indices.forEach(i => {
+                    if (this.bars[i]) {
+                        this.bars[i].classList.add(className);
+                    }
+                });
+                await this.sleep(this.delay);
+                indices.forEach(i => {
+                    if (this.bars[i]) {
+                        this.bars[i].classList.remove(className);
+                    }
+                });
+            }
+
+            async swap(i, j) {
+                this.accesses += 4;
+                await this.highlightBars([i, j], 'swapping');
+
+                [this.array[i], this.array[j]] = [this.array[j], this.array[i]];
+
+                const tempHeight = this.bars[i].style.height;
+                this.bars[i].style.height = this.bars[j].style.height;
+                this.bars[j].style.height = tempHeight;
+
+                this.updateStats();
+            }
+
+            async compare(i, j) {
+                this.comparisons++;
+                this.accesses += 2;
+                await this.highlightBars([i, j], 'comparing');
+                this.updateStats();
+                return this.array[i] > this.array[j];
+            }
+
+            async markSorted(indices) {
+                indices.forEach(i => {
+                    if (this.bars[i]) {
+                        this.bars[i].classList.add('sorted');
+                    }
+                });
+            }
+
+            async startSort() {
+                if (this.isSorting) return;
+
+                this.isSorting = true;
+                this.sortBtn.disabled = true;
+                this.comparisons = 0;
+                this.accesses = 0;
+                this.delay = parseInt(this.speedSelect.value);
+
+                const algorithm = this.algorithmSelect.value;
+
+                switch (algorithm) {
+                    case 'quicksort':
+                        await this.quickSort(0, this.array.length - 1);
+                        break;
+                    case 'mergesort':
+                        await this.mergeSort(0, this.array.length - 1);
+                        break;
+                    case 'bubblesort':
+                        await this.bubbleSort();
+                        break;
+                    case 'heapsort':
+                        await this.heapSort();
+                        break;
+                    case 'insertionsort':
+                        await this.insertionSort();
+                        break;
+                }
+
+                await this.markSorted(Array.from({ length: this.array.length }, (_, i) => i));
+                this.isSorting = false;
+                this.sortBtn.disabled = false;
+            }
+
+            async quickSort(low, high) {
+                if (low < high) {
+                    const pi = await this.partition(low, high);
+                    await this.quickSort(low, pi - 1);
+                    await this.quickSort(pi + 1, high);
+                }
+            }
+
+            async partition(low, high) {
+                const pivot = this.array[high];
+                this.accesses++;
+                let i = low - 1;
+
+                for (let j = low; j < high; j++) {
+                    if (await this.compare(high, j)) {
+                        i++;
+                        await this.swap(i, j);
+                    }
+                }
+
+                await this.swap(i + 1, high);
+                return i + 1;
+            }
+
+            async mergeSort(left, right) {
+                if (left < right) {
+                    const mid = Math.floor((left + right) / 2);
+                    await this.mergeSort(left, mid);
+                    await this.mergeSort(mid + 1, right);
+                    await this.merge(left, mid, right);
+                }
+            }
+
+            async merge(left, mid, right) {
+                const leftArr = this.array.slice(left, mid + 1);
+                const rightArr = this.array.slice(mid + 1, right + 1);
+                this.accesses += leftArr.length + rightArr.length;
+
+                let i = 0, j = 0, k = left;
+
+                while (i < leftArr.length && j < rightArr.length) {
+                    this.comparisons++;
+                    this.accesses += 3;
+
+                    await this.highlightBars([k], 'comparing');
+
+                    if (leftArr[i] <= rightArr[j]) {
+                        this.array[k] = leftArr[i];
+                        this.bars[k].style.height = `${leftArr[i]}px`;
+                        i++;
+                    } else {
+                        this.array[k] = rightArr[j];
+                        this.bars[k].style.height = `${rightArr[j]}px`;
+                        j++;
+                    }
+
+                    this.updateStats();
+                    k++;
+                }
+
+                while (i < leftArr.length) {
+                    this.accesses += 2;
+                    await this.highlightBars([k], 'comparing');
+                    this.array[k] = leftArr[i];
+                    this.bars[k].style.height = `${leftArr[i]}px`;
+                    this.updateStats();
+                    i++;
+                    k++;
+                }
+
+                while (j < rightArr.length) {
+                    this.accesses += 2;
+                    await this.highlightBars([k], 'comparing');
+                    this.array[k] = rightArr[j];
+                    this.bars[k].style.height = `${rightArr[j]}px`;
+                    this.updateStats();
+                    j++;
+                    k++;
+                }
+            }
+
+            async bubbleSort() {
+                const n = this.array.length;
+
+                for (let i = 0; i < n - 1; i++) {
+                    for (let j = 0; j < n - i - 1; j++) {
+                        if (await this.compare(j, j + 1)) {
+                            await this.swap(j, j + 1);
+                        }
+                    }
+                    await this.markSorted([n - i - 1]);
+                }
+            }
+
+            async heapSort() {
+                const n = this.array.length;
+
+                for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+                    await this.heapify(n, i);
+                }
+
+                for (let i = n - 1; i > 0; i--) {
+                    await this.swap(0, i);
+                    await this.markSorted([i]);
+                    await this.heapify(i, 0);
+                }
+            }
+
+            async heapify(n, i) {
+                let largest = i;
+                const left = 2 * i + 1;
+                const right = 2 * i + 2;
+
+                if (left < n && await this.compare(left, largest)) {
+                    largest = left;
+                }
+
+                if (right < n && await this.compare(right, largest)) {
+                    largest = right;
+                }
+
+                if (largest !== i) {
+                    await this.swap(i, largest);
+                    await this.heapify(n, largest);
+                }
+            }
+
+            async insertionSort() {
+                const n = this.array.length;
+
+                for (let i = 1; i < n; i++) {
+                    let key = this.array[i];
+                    let j = i - 1;
+                    this.accesses++;
+
+                    await this.highlightBars([i], 'comparing');
+
+                    while (j >= 0 && await this.compare(j, -1) && this.array[j] > key) {
+                        this.array[j + 1] = this.array[j];
+                        this.bars[j + 1].style.height = `${this.array[j]}px`;
+                        this.accesses += 2;
+                        this.updateStats();
+                        j--;
+                    }
+
+                    this.array[j + 1] = key;
+                    this.bars[j + 1].style.height = `${key}px`;
+                    this.accesses++;
+                    this.updateStats();
+                    await this.markSorted([i]);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new SortingVisualizer();
+        });
+    </script>
 </body>
 </html>
