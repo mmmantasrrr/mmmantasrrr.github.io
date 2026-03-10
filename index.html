@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mantas - Software Engineer & Creative Developer">
+    <meta name="theme-color" content="#1a1612">
+    <title>Mantas - Software Engineer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Urbanist:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* OKLCH color system - tinted neutrals with warm undertones */
+            --color-base: oklch(14% 0.015 45);
+            --color-surface: oklch(18% 0.012 45);
+            --color-elevated: oklch(22% 0.012 45);
+            --color-text-primary: oklch(92% 0.008 45);
+            --color-text-secondary: oklch(68% 0.01 45);
+            --color-accent: oklch(75% 0.18 85);
+            --color-accent-vivid: oklch(82% 0.21 85);
+            --color-border: oklch(28% 0.012 45);
+
+            /* Fluid typography scale using clamp */
+            --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+            --text-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+            --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+            --text-lg: clamp(1.125rem, 1rem + 0.625vw, 1.5rem);
+            --text-xl: clamp(1.5rem, 1.3rem + 1vw, 2.25rem);
+            --text-2xl: clamp(2rem, 1.6rem + 2vw, 3.5rem);
+            --text-3xl: clamp(2.5rem, 2rem + 2.5vw, 4.5rem);
+
+            /* Fluid spacing system */
+            --space-xs: clamp(0.5rem, 0.45rem + 0.25vw, 0.75rem);
+            --space-sm: clamp(0.75rem, 0.7rem + 0.25vw, 1rem);
+            --space-md: clamp(1.5rem, 1.3rem + 1vw, 2.5rem);
+            --space-lg: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+            --space-xl: clamp(4rem, 3rem + 5vw, 7rem);
+            --space-2xl: clamp(6rem, 4rem + 10vw, 12rem);
+
+            /* Animation timing */
+            --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body {
+            font-family: 'Urbanist', system-ui, sans-serif;
+            font-weight: 300;
+            line-height: 1.6;
+            color: var(--color-text-primary);
+            background: var(--color-base);
+            overflow-x: hidden;
+        }
+
+        /* Typography hierarchy */
+        .display {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+        }
+
+        .heading {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        /* Geometric decorative element */
+        .geo-accent {
+            position: fixed;
+            width: clamp(300px, 40vw, 600px);
+            height: clamp(300px, 40vw, 600px);
+            border: 1px solid var(--color-border);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .geo-accent-1 {
+            top: -15%;
+            right: -10%;
+            animation: rotate-slow 60s linear infinite;
+        }
+
+        .geo-accent-2 {
+            bottom: -20%;
+            left: -5%;
+            animation: rotate-slow 45s linear infinite reverse;
+        }
+
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main container with asymmetric layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-lg) clamp(1.5rem, 5vw, 4rem);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hero section */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--space-xl) 0;
+            position: relative;
+        }
+
+        .hero-label {
+            font-size: var(--text-sm);
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-sm);
+            opacity: 0;
+            animation: fade-up 0.8s var(--ease-out-expo) 0.2s forwards;
+        }
+
+        .hero-title {
+            font-size: var(--text-3xl);
+            margin-bottom: var(--space-md);
+            opacity: 0;
+            animation: fade-up 0.8s var(--ease-out-expo) 0.4s forwards;
+        }
+
+        .hero-subtitle {
+            font-size: var(--text-xl);
+            font-weight: 400;
+            color: var(--color-text-secondary);
+            max-width: 32ch;
+            margin-bottom: var(--space-lg);
+            opacity: 0;
+            animation: fade-up 0.8s var(--ease-out-expo) 0.6s forwards;
+        }
+
+        .hero-description {
+            font-size: var(--text-lg);
+            font-weight: 300;
+            color: var(--color-text-secondary);
+            max-width: 55ch;
+            line-height: 1.7;
+            opacity: 0;
+            animation: fade-up 0.8s var(--ease-out-expo) 0.8s forwards;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Links section */
+        .links {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fade-up 0.8s var(--ease-out-expo) 1s forwards;
+        }
+
+        .link-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: clamp(0.75rem, 1vw, 1rem) clamp(1.5rem, 2vw, 2rem);
+            font-size: var(--text-base);
+            font-weight: 400;
+            text-decoration: none;
+            color: var(--color-text-primary);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            transition: all 0.3s var(--ease-out-quint);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .link-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--color-elevated);
+            transform: translateY(100%);
+            transition: transform 0.4s var(--ease-out-expo);
+            z-index: -1;
+        }
+
+        .link-button:hover::before {
+            transform: translateY(0);
+        }
+
+        .link-button:hover {
+            border-color: var(--color-accent);
+            color: var(--color-accent-vivid);
+            transform: translateY(-2px);
+        }
+
+        .link-primary {
+            background: var(--color-accent);
+            color: var(--color-base);
+            font-weight: 600;
+            border-color: var(--color-accent);
+        }
+
+        .link-primary:hover {
+            background: var(--color-accent-vivid);
+            border-color: var(--color-accent-vivid);
+            color: var(--color-base);
+        }
+
+        /* Projects section */
+        .projects {
+            padding: var(--space-2xl) 0 var(--space-xl);
+        }
+
+        .section-title {
+            font-size: var(--text-2xl);
+            margin-bottom: var(--space-lg);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .project-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            padding: var(--space-md);
+            transition: all 0.4s var(--ease-out-expo);
+            position: relative;
+        }
+
+        .project-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1px solid var(--color-accent);
+            opacity: 0;
+            transition: opacity 0.4s var(--ease-out-expo);
+            pointer-events: none;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--color-accent);
+        }
+
+        .project-card:hover::after {
+            opacity: 1;
+        }
+
+        .project-label {
+            font-size: var(--text-xs);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: var(--space-xs);
+        }
+
+        .project-title {
+            font-size: var(--text-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        .project-description {
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+            line-height: 1.65;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: var(--space-xs);
+            flex-wrap: wrap;
+            margin-top: var(--space-sm);
+        }
+
+        .tag {
+            font-size: var(--text-xs);
+            padding: 0.35em 0.75em;
+            background: var(--color-elevated);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+        }
+
+        /* Skills section */
+        .skills {
+            padding: var(--space-xl) 0;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            gap: var(--space-lg) var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .skill-group h3 {
+            font-size: var(--text-lg);
+            margin-bottom: var(--space-sm);
+            color: var(--color-accent);
+        }
+
+        .skill-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .skill-list li {
+            font-size: var(--text-base);
+            color: var(--color-text-secondary);
+            padding-left: var(--space-sm);
+            position: relative;
+        }
+
+        .skill-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.7em;
+            width: 4px;
+            height: 4px;
+            background: var(--color-accent);
+            transform: rotate(45deg);
+        }
+
+        /* Contact section */
+        .contact {
+            padding: var(--space-xl) 0 var(--space-2xl);
+        }
+
+        .contact-content {
+            max-width: 700px;
+        }
+
+        .contact-description {
+            font-size: var(--text-lg);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-lg);
+            line-height: 1.7;
+        }
+
+        .contact-email {
+            font-size: var(--text-xl);
+            color: var(--color-accent-vivid);
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.3s var(--ease-out-quint);
+        }
+
+        .contact-email:hover {
+            transform: translateX(8px);
+        }
+
+        /* Footer */
+        footer {
+            padding: var(--space-lg) 0;
+            border-top: 1px solid var(--color-border);
+            text-align: center;
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .hero {
+                min-height: 70vh;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .skills-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-md);
+            }
+
+            .links {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .link-button {
+                justify-content: center;
+            }
+        }
+
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .geo-accent {
+                animation: none;
+            }
+        }
+
+        /* Focus styles for accessibility */
+        *:focus-visible {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Geometric decorative elements -->
+    <div class="geo-accent geo-accent-1"></div>
+    <div class="geo-accent geo-accent-2"></div>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-label">Software Engineer & Developer</div>
+            <h1 class="hero-title display">Mantas</h1>
+            <p class="hero-subtitle">Building elegant solutions to complex problems</p>
+            <p class="hero-description">
+                I craft sophisticated web applications with a focus on clean architecture,
+                exceptional user experience, and cutting-edge technology. From concept to
+                deployment, I bring ideas to life with precision and creativity.
+            </p>
+            <div class="links">
+                <a href="https://github.com/mmmantasrrr" class="link-button link-primary" target="_blank" rel="noopener">
+                    View GitHub
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M5 11L11 5M11 5H6M11 5V10"/>
+                    </svg>
+                </a>
+                <a href="#contact" class="link-button">Get in Touch</a>
+                <a href="#projects" class="link-button">View Work</a>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="projects">
+            <h2 class="section-title heading">Featured Projects</h2>
+
+            <div class="projects-grid">
+                <article class="project-card">
+                    <div class="project-label">Open Source Tool</div>
+                    <h3 class="project-title heading">Skill Seeker</h3>
+                    <p class="project-description">
+                        A Claude Code plugin that discovers, evaluates, and installs community-created
+                        skills from GitHub. Enables autonomous skill discovery with security scanning
+                        and curated registry integration.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag">TypeScript</span>
+                        <span class="tag">CLI Tools</span>
+                        <span class="tag">Security</span>
+                    </div>
+                </article>
+
+                <article class="project-card">
+                    <div class="project-label">Web Application</div>
+                    <h3 class="project-title heading">Portfolio Platform</h3>
+                    <p class="project-description">
+                        A modern, performance-optimized portfolio platform showcasing professional
+                        work with sophisticated animations, responsive design, and accessibility-first
+                        architecture.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag">React</span>
+                        <span class="tag">Design Systems</span>
+                        <span class="tag">A11y</span>
+                    </div>
+                </article>
+
+                <article class="project-card">
+                    <div class="project-label">Development Tool</div>
+                    <h3 class="project-title heading">Developer Utilities</h3>
+                    <p class="project-description">
+                        Collection of developer productivity tools including code generators,
+                        automation scripts, and workflow optimizers designed to streamline
+                        common development tasks.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag">Node.js</span>
+                        <span class="tag">Automation</span>
+                        <span class="tag">DevOps</span>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="skills">
+            <h2 class="section-title heading">Technical Expertise</h2>
+
+            <div class="skills-grid">
+                <div class="skill-group">
+                    <h3 class="heading">Frontend Development</h3>
+                    <ul class="skill-list">
+                        <li>React, Vue, Angular</li>
+                        <li>TypeScript, JavaScript (ES6+)</li>
+                        <li>CSS3, Sass, Tailwind</li>
+                        <li>Web Components, Shadow DOM</li>
+                        <li>Performance Optimization</li>
+                    </ul>
+                </div>
+
+                <div class="skill-group">
+                    <h3 class="heading">Backend & Infrastructure</h3>
+                    <ul class="skill-list">
+                        <li>Node.js, Express, NestJS</li>
+                        <li>Python, Django, FastAPI</li>
+                        <li>PostgreSQL, MongoDB, Redis</li>
+                        <li>Docker, Kubernetes</li>
+                        <li>AWS, GCP, Azure</li>
+                    </ul>
+                </div>
+
+                <div class="skill-group">
+                    <h3 class="heading">Design & UX</h3>
+                    <ul class="skill-list">
+                        <li>UI/UX Design Principles</li>
+                        <li>Design Systems & Tokens</li>
+                        <li>Accessibility (WCAG 2.1)</li>
+                        <li>Responsive Design</li>
+                        <li>Motion Design</li>
+                    </ul>
+                </div>
+
+                <div class="skill-group">
+                    <h3 class="heading">Tools & Workflow</h3>
+                    <ul class="skill-list">
+                        <li>Git, GitHub Actions</li>
+                        <li>CI/CD Pipelines</li>
+                        <li>Testing (Jest, Playwright)</li>
+                        <li>Agile Methodologies</li>
+                        <li>Code Review & Mentoring</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <h2 class="section-title heading">Let's Work Together</h2>
+            <div class="contact-content">
+                <p class="contact-description">
+                    I'm always interested in hearing about new projects and opportunities.
+                    Whether you have a question or just want to say hi, feel free to reach out.
+                </p>
+                <a href="mailto:hello@example.com" class="contact-email">hello@example.com</a>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Mantas. Built with intention and care.</p>
+    </footer>
+</body>
+</html>
