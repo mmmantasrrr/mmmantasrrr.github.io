@@ -578,6 +578,72 @@
             </div>
         </section>
 
+        <!-- Sorting Visualization Section -->
+        <section id="sorting-viz" class="sorting-viz">
+            <h2 class="section-title heading">Sorting Algorithm Visualization</h2>
+
+            <div class="viz-controls">
+                <div class="control-group">
+                    <label class="control-label" for="algorithm-select">Algorithm</label>
+                    <select id="algorithm-select" class="viz-select">
+                        <option value="quicksort">Quick Sort</option>
+                        <option value="mergesort">Merge Sort</option>
+                        <option value="bubblesort">Bubble Sort</option>
+                        <option value="heapsort">Heap Sort</option>
+                        <option value="insertionsort">Insertion Sort</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="speed-select">Speed</label>
+                    <select id="speed-select" class="viz-select">
+                        <option value="10">Very Fast</option>
+                        <option value="50" selected>Fast</option>
+                        <option value="150">Normal</option>
+                        <option value="300">Slow</option>
+                        <option value="500">Very Slow</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="size-select">Array Size</label>
+                    <select id="size-select" class="viz-select">
+                        <option value="12">12</option>
+                        <option value="20">20</option>
+                        <option value="40" selected>40</option>
+                        <option value="60">60</option>
+                        <option value="80">80</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <div class="control-group" style="margin-top: auto;">
+                    <button id="sort-btn" class="viz-button viz-button-primary">Sort</button>
+                </div>
+
+                <div class="control-group" style="margin-top: auto;">
+                    <button id="reset-btn" class="viz-button">Reset</button>
+                </div>
+            </div>
+
+            <div id="viz-canvas" class="viz-canvas"></div>
+
+            <div class="viz-stats">
+                <div class="stat-item">
+                    <span class="control-label">Comparisons</span>
+                    <div class="stat-value" id="comparisons">0</div>
+                </div>
+                <div class="stat-item">
+                    <span class="control-label">Array Accesses</span>
+                    <div class="stat-value" id="accesses">0</div>
+                </div>
+                <div class="stat-item">
+                    <span class="control-label">Time Complexity</span>
+                    <div class="stat-value" id="complexity">O(n log n)</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Projects Section -->
         <section id="projects" class="projects">
             <h2 class="section-title heading">Featured Projects</h2>
@@ -681,71 +747,6 @@
             </div>
         </section>
 
-        <!-- Sorting Visualization Section -->
-        <section id="sorting-viz" class="sorting-viz">
-            <h2 class="section-title heading">Sorting Algorithm Visualization</h2>
-
-            <div class="viz-controls">
-                <div class="control-group">
-                    <label class="control-label" for="algorithm-select">Algorithm</label>
-                    <select id="algorithm-select" class="viz-select">
-                        <option value="quicksort">Quick Sort</option>
-                        <option value="mergesort">Merge Sort</option>
-                        <option value="bubblesort">Bubble Sort</option>
-                        <option value="heapsort">Heap Sort</option>
-                        <option value="insertionsort">Insertion Sort</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label" for="speed-select">Speed</label>
-                    <select id="speed-select" class="viz-select">
-                        <option value="10">Very Fast</option>
-                        <option value="50" selected>Fast</option>
-                        <option value="150">Normal</option>
-                        <option value="300">Slow</option>
-                        <option value="500">Very Slow</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label class="control-label" for="size-select">Array Size</label>
-                    <select id="size-select" class="viz-select">
-                        <option value="20">20</option>
-                        <option value="40" selected>40</option>
-                        <option value="60">60</option>
-                        <option value="80">80</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-
-                <div class="control-group" style="margin-top: auto;">
-                    <button id="sort-btn" class="viz-button viz-button-primary">Sort</button>
-                </div>
-
-                <div class="control-group" style="margin-top: auto;">
-                    <button id="reset-btn" class="viz-button">Reset</button>
-                </div>
-            </div>
-
-            <div id="viz-canvas" class="viz-canvas"></div>
-
-            <div class="viz-stats">
-                <div class="stat-item">
-                    <span class="control-label">Comparisons</span>
-                    <div class="stat-value" id="comparisons">0</div>
-                </div>
-                <div class="stat-item">
-                    <span class="control-label">Array Accesses</span>
-                    <div class="stat-value" id="accesses">0</div>
-                </div>
-                <div class="stat-item">
-                    <span class="control-label">Time Complexity</span>
-                    <div class="stat-value" id="complexity">O(n log n)</div>
-                </div>
-            </div>
-        </section>
-
         <!-- Contact Section -->
         <section id="contact" class="contact">
             <h2 class="section-title heading">Let's Work Together</h2>
@@ -791,11 +792,56 @@
                     insertionsort: 'O(n²)'
                 };
 
+                // Piano note frequencies for one octave (C4 to B4)
+                this.pianoNotes = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23,
+                                   369.99, 392.00, 415.30, 440.00, 466.16, 493.88];
+                this.audioCtx = null;
+
                 this.init();
             }
 
+            initAudio() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playNote(index) {
+                if (!this.audioCtx) return;
+                const size = this.array.length;
+                // Map position 0..(size-1) linearly across one octave (C4=0 to B4=11)
+                const noteIndex = Math.round((index / Math.max(size - 1, 1)) * 11);
+                const freq = this.pianoNotes[Math.min(noteIndex, 11)];
+
+                const now = this.audioCtx.currentTime;
+                const masterGain = this.audioCtx.createGain();
+                masterGain.connect(this.audioCtx.destination);
+
+                // Piano-like timbre: fundamental + harmonics with natural rolloff
+                [1, 2, 3, 4].forEach((harmonic, i) => {
+                    const osc = this.audioCtx.createOscillator();
+                    const oscGain = this.audioCtx.createGain();
+                    osc.connect(oscGain);
+                    oscGain.connect(masterGain);
+                    osc.type = 'sine';
+                    osc.frequency.value = freq * harmonic;
+                    oscGain.gain.value = 0.3 / (harmonic * harmonic);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                });
+
+                // ADSR envelope: quick attack, fast decay, soft release
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(0.25, now + 0.005);
+                masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.1);
+                masterGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            }
+
             init() {
-                this.sortBtn.addEventListener('click', () => this.startSort());
+                this.sortBtn.addEventListener('click', () => {
+                    this.initAudio();
+                    this.startSort();
+                });
                 this.resetBtn.addEventListener('click', () => this.reset());
                 this.sizeSelect.addEventListener('change', () => this.reset());
                 this.algorithmSelect.addEventListener('change', () => this.updateComplexity());
@@ -868,6 +914,9 @@
                 const tempHeight = this.bars[i].style.height;
                 this.bars[i].style.height = this.bars[j].style.height;
                 this.bars[j].style.height = tempHeight;
+
+                this.playNote(i);
+                this.playNote(j);
 
                 this.updateStats();
             }
@@ -971,10 +1020,12 @@
                     if (leftArr[i] <= rightArr[j]) {
                         this.array[k] = leftArr[i];
                         this.bars[k].style.height = `${leftArr[i]}px`;
+                        this.playNote(k);
                         i++;
                     } else {
                         this.array[k] = rightArr[j];
                         this.bars[k].style.height = `${rightArr[j]}px`;
+                        this.playNote(k);
                         j++;
                     }
 
@@ -987,6 +1038,7 @@
                     await this.highlightBars([k], 'comparing');
                     this.array[k] = leftArr[i];
                     this.bars[k].style.height = `${leftArr[i]}px`;
+                    this.playNote(k);
                     this.updateStats();
                     i++;
                     k++;
@@ -997,6 +1049,7 @@
                     await this.highlightBars([k], 'comparing');
                     this.array[k] = rightArr[j];
                     this.bars[k].style.height = `${rightArr[j]}px`;
+                    this.playNote(k);
                     this.updateStats();
                     j++;
                     k++;
@@ -1062,6 +1115,7 @@
                     while (j >= 0 && await this.compare(j, -1) && this.array[j] > key) {
                         this.array[j + 1] = this.array[j];
                         this.bars[j + 1].style.height = `${this.array[j]}px`;
+                        this.playNote(j + 1);
                         this.accesses += 2;
                         this.updateStats();
                         j--;
@@ -1069,6 +1123,7 @@
 
                     this.array[j + 1] = key;
                     this.bars[j + 1].style.height = `${key}px`;
+                    this.playNote(j + 1);
                     this.accesses++;
                     this.updateStats();
                     await this.markSorted([i]);
