@@ -397,6 +397,9 @@
             gap: var(--space-xs);
         }
 
+        .control-group--align-end {
+            justify-content: flex-end;
+        }
         .control-label {
             font-size: var(--text-xs);
             letter-spacing: 0.12em;
@@ -473,6 +476,57 @@
         .viz-bar.sorted {
             background: oklch(65% 0.15 140);
             border-top-color: oklch(75% 0.18 140);
+        }
+
+        /* Swing toggle */
+        .swing-label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .swing-checkbox {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .swing-track {
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            background: var(--color-elevated);
+            border: 1px solid var(--color-border);
+            position: relative;
+            transition: all 0.3s var(--ease-out-quint);
+        }
+
+        .swing-track::after {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 14px;
+            height: 14px;
+            background: var(--color-text-secondary);
+            transition: all 0.3s var(--ease-out-quint);
+        }
+
+        .swing-checkbox:checked + .swing-track {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+        }
+
+        .swing-checkbox:checked + .swing-track::after {
+            left: 18px;
+            background: var(--color-base);
+        }
+
+        .swing-checkbox:focus-visible + .swing-track {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 2px;
         }
 
         .viz-stats {
@@ -595,26 +649,43 @@
                 </div>
 
                 <div class="control-group">
-                    <label class="control-label" for="speed-select">Speed</label>
-                    <select id="speed-select" class="viz-select">
-                        <option value="10">Very Fast</option>
-                        <option value="50" selected>Fast</option>
-                        <option value="150">Normal</option>
-                        <option value="300">Slow</option>
-                        <option value="500">Very Slow</option>
+                    <label class="control-label" for="tempo-select">Tempo</label>
+                    <select id="tempo-select" class="viz-select">
+                        <option value="60">Larghetto · 60 BPM</option>
+                        <option value="80">Andante · 80 BPM</option>
+                        <option value="100">Moderato · 100 BPM</option>
+                        <option value="120" selected>Allegro · 120 BPM</option>
+                        <option value="140">Vivace · 140 BPM</option>
+                        <option value="160">Presto · 160 BPM</option>
                     </select>
                 </div>
 
                 <div class="control-group">
-                    <label class="control-label" for="size-select">Array Size</label>
-                    <select id="size-select" class="viz-select">
-                        <option value="12">12</option>
-                        <option value="20">20</option>
-                        <option value="40" selected>40</option>
-                        <option value="60">60</option>
-                        <option value="80">80</option>
-                        <option value="100">100</option>
+                    <label class="control-label" for="scale-select">Scale</label>
+                    <select id="scale-select" class="viz-select">
+                        <option value="major">Major</option>
+                        <option value="minor">Natural Minor</option>
+                        <option value="pentatonic" selected>Pentatonic</option>
+                        <option value="blues">Blues</option>
+                        <option value="chromatic">Chromatic</option>
                     </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="octaves-select">Octaves</label>
+                    <select id="octaves-select" class="viz-select">
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+
+                <div class="control-group control-group--align-end">
+                    <label class="control-label" for="swing-toggle">Swing</label>
+                    <label class="swing-label">
+                        <input type="checkbox" id="swing-toggle" class="swing-checkbox">
+                        <span class="swing-track"></span>
+                    </label>
                 </div>
 
                 <div class="control-group" style="margin-top: auto;">
@@ -765,14 +836,25 @@
     </footer>
 
     <script>
+        // Musical scale definitions (semitone intervals from root)
+        const SCALES = {
+            major:      [0, 2, 4, 5, 7, 9, 11],
+            minor:      [0, 2, 3, 5, 7, 8, 10],
+            pentatonic: [0, 2, 4, 7, 9],
+            blues:      [0, 3, 5, 6, 7, 10],
+            chromatic:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        };
+
         class SortingVisualizer {
             constructor() {
                 this.canvas = document.getElementById('viz-canvas');
                 this.sortBtn = document.getElementById('sort-btn');
                 this.resetBtn = document.getElementById('reset-btn');
                 this.algorithmSelect = document.getElementById('algorithm-select');
-                this.speedSelect = document.getElementById('speed-select');
-                this.sizeSelect = document.getElementById('size-select');
+                this.tempoSelect = document.getElementById('tempo-select');
+                this.scaleSelect = document.getElementById('scale-select');
+                this.octavesSelect = document.getElementById('octaves-select');
+                this.swingToggle = document.getElementById('swing-toggle');
                 this.comparisonsEl = document.getElementById('comparisons');
                 this.accessesEl = document.getElementById('accesses');
                 this.complexityEl = document.getElementById('complexity');
@@ -782,7 +864,8 @@
                 this.isSorting = false;
                 this.comparisons = 0;
                 this.accesses = 0;
-                this.delay = 50;
+                this.stepCounter = 0;
+                this.scaleFrequencies = [];
 
                 this.complexityMap = {
                     quicksort: 'O(n log n)',
@@ -792,9 +875,6 @@
                     insertionsort: 'O(n²)'
                 };
 
-                // Piano note frequencies for one octave (C4 to B4)
-                this.pianoNotes = [261.63, 277.18, 293.66, 311.13, 329.63, 349.23,
-                                   369.99, 392.00, 415.30, 440.00, 466.16, 493.88];
                 this.audioCtx = null;
 
                 this.init();
@@ -806,19 +886,56 @@
                 }
             }
 
-            playNote(index) {
+            // Build frequency array for chosen scale × octaves, rooted at C3 (130.81 Hz)
+            buildScaleFrequencies() {
+                const C3 = 130.81;
+                const intervals = SCALES[this.scaleSelect.value] || SCALES.pentatonic;
+                const octaves = parseInt(this.octavesSelect.value);
+                const freqs = [];
+                for (let oct = 0; oct < octaves; oct++) {
+                    for (const semitone of intervals) {
+                        freqs.push(C3 * Math.pow(2, (oct * 12 + semitone) / 12));
+                    }
+                }
+                return freqs;
+            }
+
+            // BPM → step delay (8th note). Applies swing when toggled.
+            getStepDelay() {
+                const bpm = parseInt(this.tempoSelect.value);
+                const eighthMs = 60000 / bpm / 2;
+                if (this.swingToggle.checked) {
+                    // 2:1 swing ratio: long step = dotted 8th (4/3×), short = 16th (2/3×)
+                    const isLong = this.stepCounter % 2 === 0;
+                    this.stepCounter++;
+                    return isLong ? eighthMs * 4 / 3 : eighthMs * 2 / 3;
+                }
+                this.stepCounter++;
+                return eighthMs;
+            }
+
+            // Convert a note rank (0..n-1) to a bar height in pixels (60..400 px range)
+            valueToHeight(value) {
+                const n = this.scaleFrequencies.length;
+                return Math.round(((value + 1) / n) * 340 + 60);
+            }
+
+            playNote(barIndex) {
                 if (!this.audioCtx) return;
-                const size = this.array.length;
-                // Map position 0..(size-1) linearly across one octave (C4=0 to B4=11)
-                const noteIndex = Math.round((index / Math.max(size - 1, 1)) * 11);
-                const freq = this.pianoNotes[Math.min(noteIndex, 11)];
+                const noteIndex = this.array[barIndex];
+                if (noteIndex === undefined || noteIndex < 0 || noteIndex >= this.scaleFrequencies.length) return;
+                const freq = this.scaleFrequencies[noteIndex];
+
+                const bpm = parseInt(this.tempoSelect.value);
+                // 90% of one 8th note, capped at 0.45s so notes don't blur at slow tempos
+                const noteDuration = Math.min((60 / bpm / 2) * 0.9, 0.45);
 
                 const now = this.audioCtx.currentTime;
                 const masterGain = this.audioCtx.createGain();
                 masterGain.connect(this.audioCtx.destination);
 
                 // Piano-like timbre: fundamental + harmonics with natural rolloff
-                [1, 2, 3, 4].forEach((harmonic, i) => {
+                [1, 2, 3, 4].forEach((harmonic) => {
                     const osc = this.audioCtx.createOscillator();
                     const oscGain = this.audioCtx.createGain();
                     osc.connect(oscGain);
@@ -827,14 +944,14 @@
                     osc.frequency.value = freq * harmonic;
                     oscGain.gain.value = 0.3 / (harmonic * harmonic);
                     osc.start(now);
-                    osc.stop(now + 0.4);
+                    osc.stop(now + noteDuration);
                 });
 
-                // ADSR envelope: quick attack, fast decay, soft release
+                // ADSR envelope: fast attack, decay to sustain, release at note end
                 masterGain.gain.setValueAtTime(0, now);
                 masterGain.gain.linearRampToValueAtTime(0.25, now + 0.005);
-                masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.1);
-                masterGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                masterGain.gain.exponentialRampToValueAtTime(0.08, now + noteDuration * 0.25);
+                masterGain.gain.exponentialRampToValueAtTime(0.001, now + noteDuration);
             }
 
             init() {
@@ -843,7 +960,8 @@
                     this.startSort();
                 });
                 this.resetBtn.addEventListener('click', () => this.reset());
-                this.sizeSelect.addEventListener('change', () => this.reset());
+                this.scaleSelect.addEventListener('change', () => this.reset());
+                this.octavesSelect.addEventListener('change', () => this.reset());
                 this.algorithmSelect.addEventListener('change', () => this.updateComplexity());
 
                 this.reset();
@@ -858,6 +976,7 @@
                 this.isSorting = false;
                 this.comparisons = 0;
                 this.accesses = 0;
+                this.stepCounter = 0;
                 this.updateStats();
                 this.generateArray();
                 this.render();
@@ -866,8 +985,14 @@
             }
 
             generateArray() {
-                const size = parseInt(this.sizeSelect.value);
-                this.array = Array.from({ length: size }, () => Math.floor(Math.random() * 350) + 50);
+                this.scaleFrequencies = this.buildScaleFrequencies();
+                const n = this.scaleFrequencies.length;
+                // Array values are note rank indices 0..n-1, shuffled
+                this.array = Array.from({ length: n }, (_, i) => i);
+                for (let i = n - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.array[i], this.array[j]] = [this.array[j], this.array[i]];
+                }
             }
 
             render() {
@@ -875,7 +1000,7 @@
                 this.bars = this.array.map((value, index) => {
                     const bar = document.createElement('div');
                     bar.className = 'viz-bar';
-                    bar.style.height = `${value}px`;
+                    bar.style.height = `${this.valueToHeight(value)}px`;
                     bar.dataset.index = index;
                     this.canvas.appendChild(bar);
                     return bar;
@@ -897,7 +1022,7 @@
                         this.bars[i].classList.add(className);
                     }
                 });
-                await this.sleep(this.delay);
+                await this.sleep(this.getStepDelay());
                 indices.forEach(i => {
                     if (this.bars[i]) {
                         this.bars[i].classList.remove(className);
@@ -911,9 +1036,8 @@
 
                 [this.array[i], this.array[j]] = [this.array[j], this.array[i]];
 
-                const tempHeight = this.bars[i].style.height;
-                this.bars[i].style.height = this.bars[j].style.height;
-                this.bars[j].style.height = tempHeight;
+                this.bars[i].style.height = `${this.valueToHeight(this.array[i])}px`;
+                this.bars[j].style.height = `${this.valueToHeight(this.array[j])}px`;
 
                 this.playNote(i);
                 this.playNote(j);
@@ -944,7 +1068,7 @@
                 this.sortBtn.disabled = true;
                 this.comparisons = 0;
                 this.accesses = 0;
-                this.delay = parseInt(this.speedSelect.value);
+                this.stepCounter = 0;
 
                 const algorithm = this.algorithmSelect.value;
 
@@ -1019,12 +1143,12 @@
 
                     if (leftArr[i] <= rightArr[j]) {
                         this.array[k] = leftArr[i];
-                        this.bars[k].style.height = `${leftArr[i]}px`;
+                        this.bars[k].style.height = `${this.valueToHeight(leftArr[i])}px`;
                         this.playNote(k);
                         i++;
                     } else {
                         this.array[k] = rightArr[j];
-                        this.bars[k].style.height = `${rightArr[j]}px`;
+                        this.bars[k].style.height = `${this.valueToHeight(rightArr[j])}px`;
                         this.playNote(k);
                         j++;
                     }
@@ -1037,7 +1161,7 @@
                     this.accesses += 2;
                     await this.highlightBars([k], 'comparing');
                     this.array[k] = leftArr[i];
-                    this.bars[k].style.height = `${leftArr[i]}px`;
+                    this.bars[k].style.height = `${this.valueToHeight(leftArr[i])}px`;
                     this.playNote(k);
                     this.updateStats();
                     i++;
@@ -1048,7 +1172,7 @@
                     this.accesses += 2;
                     await this.highlightBars([k], 'comparing');
                     this.array[k] = rightArr[j];
-                    this.bars[k].style.height = `${rightArr[j]}px`;
+                    this.bars[k].style.height = `${this.valueToHeight(rightArr[j])}px`;
                     this.playNote(k);
                     this.updateStats();
                     j++;
@@ -1114,7 +1238,7 @@
 
                     while (j >= 0 && await this.compare(j, -1) && this.array[j] > key) {
                         this.array[j + 1] = this.array[j];
-                        this.bars[j + 1].style.height = `${this.array[j]}px`;
+                        this.bars[j + 1].style.height = `${this.valueToHeight(this.array[j])}px`;
                         this.playNote(j + 1);
                         this.accesses += 2;
                         this.updateStats();
@@ -1122,7 +1246,7 @@
                     }
 
                     this.array[j + 1] = key;
-                    this.bars[j + 1].style.height = `${key}px`;
+                    this.bars[j + 1].style.height = `${this.valueToHeight(key)}px`;
                     this.playNote(j + 1);
                     this.accesses++;
                     this.updateStats();
